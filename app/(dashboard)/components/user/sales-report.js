@@ -19,7 +19,6 @@ import { fetchSalesReport } from "../../../helpers/backend";
 import dayjs from "dayjs";
 import { formatTimeRange } from "./total-sales";
 
-
 const SalesReport = ({ storeData }) => {
   const [storeId, setStoreId] = useState(null);
   const [time_range, setTimeRange] = useState("current_month");
@@ -50,25 +49,24 @@ const SalesReport = ({ storeData }) => {
   }, [storeId, time_range, productType]);
 
   const donutsData =
-  salesReport && salesReport[storeId] && salesReport[storeId][productType]
-  ? salesReport[storeId][productType]
-  : null;
-  
+    salesReport && salesReport[storeId] && salesReport[storeId][productType]
+      ? salesReport[storeId][productType]
+      : null;
+
   useEffect(() => {
     if (storeId && time_range && productType) {
-
       const dataNew =
-      donutsData &&
-      Object.keys(donutsData).map((date) => {
+        donutsData &&
+        Object.keys(donutsData).map((date) => {
           const entry = donutsData[date];
           return {
-              name: dayjs(entry.daily_date).format("MMM DD"),
-              orders: parseInt(entry.total_orders, 10),
-              sales: parseFloat(entry.total_sales),
-            };
+            name: dayjs(entry.daily_date).format("MMM DD"),
+            orders: parseInt(entry.total_orders, 10),
+            sales: parseFloat(entry.total_sales),
+          };
         });
-        
-        setData(dataNew);
+
+      setData(dataNew);
     }
   }, [storeId, time_range, productType, donutsData]);
 
@@ -191,8 +189,16 @@ const SalesReport = ({ storeData }) => {
               />
             </div>
           </div>
-          <div className="h-full w-full mt-16">
-            <ResponsiveContainer width="100%" height={500}>
+          <div className="h-full w-full mt-16 overflow-x-auto">
+            <ResponsiveContainer
+              className={`md:!w-full md:!h-[500px] !h-[350px] ${
+                time_range === "last_7_days"
+                  ? "!w-full"
+                  : time_range === "current_month"
+                  ? "!w-[150%]"
+                  : "!w-[300%]"
+              }`}
+            >
               <BarChart
                 // width={"100%"}
                 height={500}
@@ -210,7 +216,11 @@ const SalesReport = ({ storeData }) => {
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="sales" fill="#3BBDC4" activeBar={<Rectangle />} />
-                <Bar dataKey="orders" fill="#FAAFBE" activeBar={<Rectangle />} />
+                <Bar
+                  dataKey="orders"
+                  fill="#FAAFBE"
+                  activeBar={<Rectangle />}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

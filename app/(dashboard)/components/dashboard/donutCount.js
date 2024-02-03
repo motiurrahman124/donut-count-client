@@ -32,10 +32,14 @@ import {
 import { useFetch } from "../../../helpers/hooks";
 import MainLoader from "../common/loader";
 import dayjs from "dayjs";
+import weekday from "dayjs/plugin/weekday";
+import localeData from "dayjs/plugin/localeData";
 import FormInput from "../form/input";
 import SingleTableData from "./singleTableData";
 import { useUser } from "../../../contexts/user";
 import { convertProductDataWeek } from "../user/all-store";
+dayjs.extend(weekday);
+dayjs.extend(localeData);
 
 const DonutCountComponent = () => {
   const [form] = Form.useForm();
@@ -43,6 +47,7 @@ const DonutCountComponent = () => {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState("day");
   const [showData, setShowData] = useState(false);
+  const [startDateC, setStartDateC] = useState(null);
   const [showSpecialData, setShowSpecialData] = useState(false);
   const [multiYear, setMultiYear] = useState([]);
   const [multiStoreKey, setMultiStoreKey] = useState([]);
@@ -115,30 +120,6 @@ const DonutCountComponent = () => {
     return endValue.isBefore(startDate, "day");
   };
 
-  // const disabledEndDate = (endValue) => {
-  //   const { getFieldValue } = form;
-
-  //   const startDate = getFieldValue("start_date");
-
-  //   if (!endValue || !startDate) {
-  //     return false;
-  //   }
-
-  //   return endValue.year() !== startDate.year();
-  // };
-  // const disabledEndDate = (endValue) => {
-  //   const { getFieldValue } = form;
-  //   const startDate = getFieldValue("start_date");
-
-  //   if (!endValue || !startDate) {
-  //     return false;
-  //   }
-
-  //   return (
-  //     endValue.year() !== startDate.year() || endValue.month() !== startDate.month()
-  //   );
-  // };
-
   const handleChangeStoreKey = (value) => {
     if (value.includes("selectAll")) {
       setMultiStoreKey(storeData || []);
@@ -148,6 +129,7 @@ const DonutCountComponent = () => {
   };
 
   const handleDateSelect = (date) => {
+    setStartDateC(date);
     if (date) {
       const selectedYear = date.year();
       setMultiYear([selectedYear]);
@@ -428,20 +410,24 @@ const DonutCountComponent = () => {
                   <DatePicker format="YYYY-MM-DD" onChange={handleDateSelect} />
                 </Form.Item>
               </Col>
-              <Col lg={12} xs={24}>
-                <Form.Item
-                  label="Select End Date"
-                  name="end_date"
-                  rules={[
-                    { required: true, message: "Please select a end date" },
-                  ]}
-                >
-                  <DatePicker
-                    format="YYYY-MM-DD"
-                    disabledDate={disabledEndDate}
-                  />
-                </Form.Item>
-              </Col>
+              {!!startDateC && (
+                <Col lg={12} xs={24}>
+                  <Form.Item
+                    label="Select End Date"
+                    name="end_date"
+                    rules={[
+                      { required: true, message: "Please select a end date" },
+                    ]}
+                  >
+                    <DatePicker
+                      format="YYYY-MM-DD"
+                      disabledDate={disabledEndDate}
+                      defaultValue={dayjs(startDateC, "YYYY-MM-DD")}
+                    />
+                  </Form.Item>
+                </Col>
+              )}
+
               {/* <Col lg={12} xs={24} className="hidden">
                 <Form.Item label="Select Year">
                   <MultiYearSelect
@@ -1267,9 +1253,7 @@ const DonutCountComponent = () => {
                           );
                         })}
                         {Object.values(donut)?.map((product, index) => {
-                          const result = convertProductDataWeek(
-                            product?.Fancy
-                          );
+                          const result = convertProductDataWeek(product?.Fancy);
 
                           return (
                             <SwiperSlide key={index}>
